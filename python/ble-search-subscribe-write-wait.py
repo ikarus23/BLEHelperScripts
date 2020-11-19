@@ -98,7 +98,7 @@ def main(args):
                     "aabbccddeeff",
                     "a1a2a3a4a5",
                     "deadbeef",
-                    "foodbabe"]
+                    "f00dbabe"]
             for packet in data:
                 packet = bytes.fromhex(packet)
                 write_data(characteristic, packet)
