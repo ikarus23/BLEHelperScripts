@@ -43,7 +43,7 @@
 from time import sleep
 from os import system
 from threading import Thread
-from bluepy.btle import Scanner, Peripheral, DefaultDelegate, BTLEManagementError, ADDR_TYPE_RANDOM, ADDR_TYPE_PUBLIC
+from bluepy.btle import Scanner, Peripheral, DefaultDelegate, BTLEManagementError, BTLEDisconnectError, ADDR_TYPE_RANDOM, ADDR_TYPE_PUBLIC
 
 
 # Config.
@@ -72,6 +72,10 @@ def main(args):
             if dev.rssi < MINIMUM_RSSI:
                 continue
 
+            # Only connect to specific address.
+            # if dev.addr != "AA:BB:CC:DD:EE:FF".lower():
+            #     continue
+
             # Connect (address type might need chainging).
             peripheral = connect(dev, ADDR_TYPE_PUBLIC)
             if peripheral is None:
@@ -93,7 +97,7 @@ def main(args):
                                         "0000abcd-0000-1000-8000-00805F9B34FB",
                                         "00001234-0000-1000-8000-00805F9B34FB")
 
-            # Send data.
+            # Send data (as command).
             data = ["00112233445566778899",
                     "aabbccddeeff",
                     "a1a2a3a4a5",
@@ -108,9 +112,16 @@ def main(args):
             for i in range(10):
                 peripheral.waitForNotifications(0.25)
 
-            # Send more data.
+            # Send more data (as request).
             packet = bytes.fromhex("a0b1c3e4f5")
-            write_data(characteristic, packet)
+            write_data(characteristic, packet, True)
+
+            # Read some data.
+            data = read_data(characteristic)
+            if data == None:
+                peripheral.disconnect()
+                continue
+            print(f"[*] Read data: {data.hex()}.")
 
             # Stay connected and wait for notifications.
             while True:
@@ -121,10 +132,17 @@ def main(args):
         log("[*] Disconnecting.")
         peripheral.disconnect()
         log("[*] Shutting down.")
-    except BTLEManagementError as ex:
-        # Might be triggered because your OS shuts down the power to the BLE controller.
+        return 1
+    except BTLEDisconnectError:
+        log("[-] Bluetooth device disconnected.", True)
+        return 2
+    except BTLEManagementError:
         log("[-] Bluetooth interface is powered down.", True)
-        raise ex
+        return 3
+    except Exception as ex:
+        log("[-] Error.", True)
+        print(f"    {ex}")
+        return 4
     return 0
 
 
@@ -186,6 +204,7 @@ def connect(dev, addr_type):
 
 # Discovery services, characteristics and descriptors.
 def discover_device(peripheral):
+    log("[*] Discovering device features.")
     peripheral.getServices()
     peripheral.getCharacteristics()
     peripheral.getDescriptors()
@@ -207,18 +226,31 @@ def get_characteristic(peripheral, service_uid, characteristic_uid):
 
 
 # Write data.
-def write_data(characteristic, data):
+def write_data(characteristic, data, withResponse=False):
     try:
-        log(("[*] Writing data to handle "
-             f"0x{characteristic.getHandle():04x}."))
-        characteristic.write(data)
+        log((f"[*] Writing data to handle 0x{characteristic.getHandle():04x}:"
+             f"\n    {data.hex()}"))
+        characteristic.write(data, withResponse)
         # Sleep is needed if the device was already paired (e.g. to a mobile phone) before.
         # Without the sleep the file will not be saved. I don't know why...
         sleep(0.1)
         return True
-    except:
-        log("[-] Error on writing.")
+    except Exception as ex:
+        log(f"[-] Error on writing.\n    {ex}")
         return False
+
+
+# Read data.
+def read_data(characteristic):
+    log(f"[*] Reading data from handle 0x{characteristic.getHandle():04x}:")
+    try:
+        data = characteristic.read()
+        log(f"    {data.hex()}")
+        return data
+    except Exception as ex:
+        log(f"    None")
+        log(f"[-] Error on reading data.\n    {ex}")
+        return None
 
 
 # Subscribe to notification.
@@ -249,7 +281,8 @@ class NotificationDelegate(DefaultDelegate):
         DefaultDelegate.__init__(self)
 
     def handleNotification(self, cHandle, data):
-        print(f"[*] Notification from handle {cHandle:04x}: {data.hex()}")
+        print((f"[*] Notification from handle {cHandle:04x}:"
+               f"\n    {data.hex()}"))
 
 
 if __name__ == '__main__':
