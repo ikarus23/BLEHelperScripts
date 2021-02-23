@@ -11,49 +11,34 @@ This approch and the used commands were tested using Arch Linux and BlueZ 5.55-3
 Steps to emulate a BLE Device
 -----------------------------
 
-* Starting the Bluetooth service.
+* Starting the Bluetooth service.  
   `sudo systemctl start bluetooth`
-
-* Change the Bluetooth address to match the official device.
+* Change the Bluetooth address to match the official device.  
   `sudo btmgmt --index hci0 public-addr 00:11:22:33:44:55`
-
-* Run the interactive `bluetoothctl` programm for further configuration.
-
-* Power on the Bluetooth controller.
+* Run the interactive `bluetoothctl` programm for further configuration.  
+* Power on the Bluetooth controller.  
   `power on`
-
-* Enter the sub-menu for GATT configuration.
+* Enter the sub-menu for GATT configuration.  
   `menu gatt`
-
-* Register a service you want to emulate.
+* Register a service you want to emulate.  
   `register-service 00001234-0000-1000-8000-00805f9b34fb`
-
-* Register a characteristic you want to emulate.
+* Register a characteristic you want to emulate.  
   `register-characteristic 00005678-0000-1000-8000-00805f9b34fb read,write`
-
-* Register the profile.
+* Register the profile.  
   `register-application 00001234-0000-1000-8000-00805f9b34fb`
-
 * (Register more services, characteristics, descriptors, etc. The `clone` command might also be helpful.)
-
-* Go back to the main menu of `bluetoothctl`.
+* Go back to the main menu of `bluetoothctl`.  
   `back`
-
-* Enter the sub-menu for advertisement configuration.
+* Enter the sub-menu for advertisement configuration.  
   `menu advertise`
-
-* Set the name to match the original device.
+* Set the name to match the original device.  
   `name "Some Device"`
-
-* Set the the manufacturer data (if there are any) to match the original device.
+* Set the the manufacturer data (if there are any) to match the original device.  
   `manufacturer 0xffff 0x01 0x02 0x03 0x04 0x05`
-
 * (Configure more advertisement specific data if needed.)
-
-* Go back to the main menu of `bluetoothctl`.
+* Go back to the main menu of `bluetoothctl`.  
   `back`
-
-* Enable advertisement.
+* Enable advertisement.  
   `advertise on`
 
 
