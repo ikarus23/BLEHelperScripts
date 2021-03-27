@@ -72,6 +72,10 @@ def main(args):
             if dev.rssi < MINIMUM_RSSI:
                 continue
 
+            # Only connect to devices with a specific name
+            # if dev.getValueText(9) != "Device Name":
+            #     continue
+
             # Only connect to specific address.
             # if dev.addr != "AA:BB:CC:DD:EE:FF".lower():
             #     continue
