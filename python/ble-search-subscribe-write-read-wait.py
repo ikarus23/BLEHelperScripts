@@ -16,8 +16,7 @@
 # please make your bluetooth agent accepts all requests. This can be done by:
 # * (Un-pair if allready paired via "bluetoothctl remove <client-MAC>".)
 # * bluetoothctl agent off
-# * bluetoothctl agent NoInputNoOutput
-# * bluetoothctl default-agent
+# * bluetoothctl agent auto
 #
 # Short UUID format:
 # BLE base UUID: 00000000-0000-1000-8000-00805F9B34FB
