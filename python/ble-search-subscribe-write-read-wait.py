@@ -56,13 +56,11 @@ DEBUG = True            # Show debug output.
 
 def main(args):
     log("[*] Setting up bluetoothctl")
-    system("bluetoothctl power on")
-    # Setup bluetoothctl to accept any paring initialted by the client.
+    system("bluetoothctl power on > /dev/null")
+    # Setup bluetoothctl to accept any paring initiated by the client.
     # (It might be necessary to "bluetoothctl remove <MAC>".)
-    # TODO: This is not working yet. Maybe because of an agent conflict.
-    #system("bluetoothctl agent off")
-    #system("bluetoothctl agent NoInputNoOutput")
-    #system("bluetoothctl default-agent")
+    #system("bluetoothctl agent off > /dev/null")
+    #system("bluetoothctl agent auto > /dev/null")
 
     try:
         devices = scan()
@@ -141,7 +139,7 @@ def main(args):
         log("[-] Bluetooth device disconnected.", True)
         return 2
     except BTLEManagementError:
-        log("[-] Bluetooth interface is powered down.", True)
+        log("[-] Bluetooth interface is likely powered down.", True)
         return 3
     except Exception as ex:
         log("[-] Error.", True)
@@ -170,6 +168,7 @@ def scan():
 
 # Global variable for connecting. Yes, I know it's ugly...
 connection_error = False
+
 
 # Connect to addr using peripheral (will be called in a thread).
 def connect_peripheral(peripheral, addr, addr_type):
